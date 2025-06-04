@@ -125,7 +125,7 @@ const Agent = ({
             username: userName,
             userid: userId,
           },
-          clientMessages: ["transcript"],
+          clientMessages: ["transcript"] as any, // Transcript messages from the user
           serverMessages: [],
         },
         undefined,
@@ -143,7 +143,7 @@ const Agent = ({
         variableValues: {
           questions: formattedQuestions,
         },
-        clientMessages: ["transcript"],
+        clientMessages: ["transcript"] as any,
         serverMessages: [],
       });
     }
