@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "CogniVue",
+  title: "PrepWise",
   description: "An AI-powered platform for preparing for mock interviews",
 };
 
@@ -20,10 +20,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const isAuthPage = children?.toString().includes("AuthLayout");
+
   return (
     <html lang="en" className="dark">
       <body className={`${inter.className} antialiased pattern`}>
-        <LayoutProvider>{children}</LayoutProvider>
+        {isAuthPage ? children : <LayoutProvider>{children}</LayoutProvider>}
         <Toaster />
       </body>
     </html>
