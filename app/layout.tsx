@@ -23,7 +23,7 @@ export default function RootLayout({
   const isAuthPage = children?.toString().includes("AuthLayout");
 
   return (
-    <html lang="en" className="dark">
+    <html lang="en\" className="dark">
       <body className={`${inter.className} antialiased pattern`}>
         {isAuthPage ? children : <LayoutProvider>{children}</LayoutProvider>}
         <Toaster />
