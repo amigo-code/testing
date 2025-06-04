@@ -134,6 +134,16 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+.pattern {
+  background-color: hsla(0, 0%, 3.9%, 1);
+  background-image: radial-gradient(
+      at 47% 33%,
+      hsla(0, 0%, 14.9%, 0.5) 0px,
+      transparent 59%
+    ),
+    radial-gradient(at 82% 65%, hsla(220, 70%, 8%, 0.5) 0px, transparent 55%);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
