@@ -115,78 +115,37 @@ const Agent = ({
   }, [messages, callStatus, feedbackId, interviewId, router, type, userId]);
 
   const handleCall = async () => {
-    try {
-      setCallStatus(CallStatus.CONNECTING);
+    setCallStatus(CallStatus.CONNECTING);
 
-      if (type === "generate") {
-        const workflowId = process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID;
-
-        if (!workflowId) {
-          throw new Error(
-            "NEXT_PUBLIC_VAPI_WORKFLOW_ID is not set in environment variables"
-          );
-        }
-
-        // Try the original syntax with workflow ID as 3rd parameter
-        await vapi.start(
-          undefined, // assistant (undefined for workflow)
-          {
-            variableValues: {
-              username: userName,
-              userid: userId,
-            },
-            clientMessages: "transcript",
-            serverMessages: undefined,
-          },
-          workflowId // workflow ID as third parameter
-        );
-      } else {
-        // Assistant call logic remains the same
-        if (!interviewer) {
-          throw new Error(
-            "Interviewer configuration is missing from constants"
-          );
-        }
-
-        let formattedQuestions = "";
-        if (questions && questions.length > 0) {
-          formattedQuestions = questions
-            .map((question) => `- ${question}`)
-            .join("\n");
-        }
-
-        await vapi.start(interviewer, {
+    if (type === "generate") {
+      await vapi.start(
+        undefined,
+        {
           variableValues: {
-            questions: formattedQuestions,
+            username: userName,
+            userid: userId,
           },
-          clientMessages: "transcript",
-          serverMessages: undefined,
-        });
-      }
-    } catch (error) {
-      console.error("Call start error:", error);
-
-      // Enhanced error logging
-      if (error && error.error && error.error.message) {
-        console.error("Detailed error messages:", error.error.message);
-
-        if (Array.isArray(error.error.message)) {
-          error.error.message.forEach((msg, index) => {
-            console.error(`Error ${index + 1}:`, msg);
-          });
-        }
+          clientMessages: ["transcript"],
+          serverMessages: [],
+        },
+        undefined,
+        process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!
+      );
+    } else {
+      let formattedQuestions = "";
+      if (questions) {
+        formattedQuestions = questions
+          .map((question) => `- ${question}`)
+          .join("\n");
       }
 
-      setCallStatus(CallStatus.INACTIVE);
-
-      const errorMsg =
-        error && error.error && error.error.message
-          ? Array.isArray(error.error.message)
-            ? error.error.message.join(", ")
-            : error.error.message
-          : error.message;
-
-      alert(`Failed to start call: ${errorMsg}`);
+      await vapi.start(interviewer, {
+        variableValues: {
+          questions: formattedQuestions,
+        },
+        clientMessages: ["transcript"],
+        serverMessages: [],
+      });
     }
   };
 
@@ -246,7 +205,7 @@ const Agent = ({
 
       <div className="w-full flex justify-center">
         {callStatus !== "ACTIVE" ? (
-          <button className="relative btn-call\" onClick={() => handleCall()}>
+          <button className="relative btn-call" onClick={() => handleCall()}>
             <span
               className={cn(
                 "absolute animate-ping rounded-full opacity-75",
