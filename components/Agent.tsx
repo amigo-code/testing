@@ -118,12 +118,18 @@ const Agent = ({
     setCallStatus(CallStatus.CONNECTING);
 
     if (type === "generate") {
-      await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
-        variableValues: {
-          username: userName,
-          userid: userId,
+      await vapi.start(
+        undefined,
+        {
+          variableValues: {
+            username: userName,
+            userid: userId,
+          },
+          clientMessages: "transcript",
+          serverMessages: undefined,
         },
-      });
+        process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!
+      );
     } else {
       let formattedQuestions = "";
       if (questions) {
@@ -136,6 +142,8 @@ const Agent = ({
         variableValues: {
           questions: formattedQuestions,
         },
+        clientMessages: "transcript",
+        serverMessages: undefined,
       });
     }
   };
@@ -196,7 +204,7 @@ const Agent = ({
 
       <div className="w-full flex justify-center">
         {callStatus !== "ACTIVE" ? (
-          <button className="relative btn-call" onClick={() => handleCall()}>
+          <button className="relative btn-call\" onClick={() => handleCall()}>
             <span
               className={cn(
                 "absolute animate-ping rounded-full opacity-75",
