@@ -121,43 +121,27 @@ const Agent = ({
       if (type === "generate") {
         const workflowId = process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID;
 
-        console.log("Starting workflow call with:", {
-          workflowId,
-          userName,
-          userId,
-        });
-
         if (!workflowId) {
           throw new Error(
             "NEXT_PUBLIC_VAPI_WORKFLOW_ID is not set in environment variables"
           );
         }
 
-        // For workflows, use this structure:
-        await vapi.start({
-          // Specify that this is a workflow, not an assistant
-          workflowId: workflowId,
-          variableValues: {
-            username: userName,
-            userid: userId,
+        // Try the original syntax with workflow ID as 3rd parameter
+        await vapi.start(
+          undefined, // assistant (undefined for workflow)
+          {
+            variableValues: {
+              username: userName,
+              userid: userId,
+            },
+            clientMessages: "transcript",
+            serverMessages: undefined,
           },
-        });
-
-        // Alternative method (if the above doesn't work):
-        // await vapi.start(null, {
-        //   workflowId: workflowId,
-        //   variableValues: {
-        //     username: userName,
-        //     userid: userId,
-        //   },
-        // });
+          workflowId // workflow ID as third parameter
+        );
       } else {
-        // Assistant call remains the same
-        console.log("Starting assistant call with:", {
-          interviewer,
-          questions,
-        });
-
+        // Assistant call logic remains the same
         if (!interviewer) {
           throw new Error(
             "Interviewer configuration is missing from constants"
@@ -171,17 +155,38 @@ const Agent = ({
             .join("\n");
         }
 
-        await vapi.start({
-          ...interviewer,
+        await vapi.start(interviewer, {
           variableValues: {
             questions: formattedQuestions,
           },
+          clientMessages: "transcript",
+          serverMessages: undefined,
         });
       }
     } catch (error) {
       console.error("Call start error:", error);
+
+      // Enhanced error logging
+      if (error && error.error && error.error.message) {
+        console.error("Detailed error messages:", error.error.message);
+
+        if (Array.isArray(error.error.message)) {
+          error.error.message.forEach((msg, index) => {
+            console.error(`Error ${index + 1}:`, msg);
+          });
+        }
+      }
+
       setCallStatus(CallStatus.INACTIVE);
-      alert(`Failed to start call: ${error.message}`);
+
+      const errorMsg =
+        error && error.error && error.error.message
+          ? Array.isArray(error.error.message)
+            ? error.error.message.join(", ")
+            : error.error.message
+          : error.message;
+
+      alert(`Failed to start call: ${errorMsg}`);
     }
   };
 
