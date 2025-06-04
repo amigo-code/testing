@@ -115,36 +115,72 @@ const Agent = ({
   }, [messages, callStatus, feedbackId, interviewId, router, type, userId]);
 
   const handleCall = async () => {
-    setCallStatus(CallStatus.CONNECTING);
+    try {
+      setCallStatus(CallStatus.CONNECTING);
 
-    if (type === "generate") {
-      await vapi.start(
-        undefined,
-        {
+      if (type === "generate") {
+        const workflowId = process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID;
+
+        console.log("Starting workflow call with:", {
+          workflowId,
+          userName,
+          userId,
+        });
+
+        if (!workflowId) {
+          throw new Error(
+            "NEXT_PUBLIC_VAPI_WORKFLOW_ID is not set in environment variables"
+          );
+        }
+
+        await vapi.start(workflowId, {
           variableValues: {
             username: userName,
             userid: userId,
           },
-          clientMessages: "transcript",
-          serverMessages: undefined,
-        },
-        process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!
-      );
-    } else {
-      let formattedQuestions = "";
-      if (questions) {
-        formattedQuestions = questions
-          .map((question) => `- ${question}`)
-          .join("\n");
-      }
+        });
+      } else {
+        console.log("Starting assistant call with:", {
+          interviewer,
+          questions,
+          formattedQuestions: questions
+            ? questions.map((q) => `- ${q}`).join("\n")
+            : "No questions",
+        });
 
-      await vapi.start(interviewer, {
-        variableValues: {
-          questions: formattedQuestions,
-        },
-        clientMessages: "transcript",
-        serverMessages: undefined,
+        if (!interviewer) {
+          throw new Error(
+            "Interviewer configuration is missing from constants"
+          );
+        }
+
+        let formattedQuestions = "";
+        if (questions && questions.length > 0) {
+          formattedQuestions = questions
+            .map((question) => `- ${question}`)
+            .join("\n");
+        }
+
+        const config = {
+          ...interviewer,
+          variableValues: {
+            questions: formattedQuestions,
+          },
+        };
+
+        console.log("Final config being sent to vapi.start:", config);
+        await vapi.start(config);
+      }
+    } catch (error) {
+      console.error("Call start error:", error);
+      console.error("Error details:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
       });
+
+      setCallStatus(CallStatus.INACTIVE);
+      alert(`Failed to start call: ${error.message}`);
     }
   };
 
