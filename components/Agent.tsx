@@ -133,19 +133,29 @@ const Agent = ({
           );
         }
 
-        await vapi.start(workflowId, {
+        // For workflows, use this structure:
+        await vapi.start({
+          // Specify that this is a workflow, not an assistant
+          workflowId: workflowId,
           variableValues: {
             username: userName,
             userid: userId,
           },
         });
+
+        // Alternative method (if the above doesn't work):
+        // await vapi.start(null, {
+        //   workflowId: workflowId,
+        //   variableValues: {
+        //     username: userName,
+        //     userid: userId,
+        //   },
+        // });
       } else {
+        // Assistant call remains the same
         console.log("Starting assistant call with:", {
           interviewer,
           questions,
-          formattedQuestions: questions
-            ? questions.map((q) => `- ${q}`).join("\n")
-            : "No questions",
         });
 
         if (!interviewer) {
@@ -161,24 +171,15 @@ const Agent = ({
             .join("\n");
         }
 
-        const config = {
+        await vapi.start({
           ...interviewer,
           variableValues: {
             questions: formattedQuestions,
           },
-        };
-
-        console.log("Final config being sent to vapi.start:", config);
-        await vapi.start(config);
+        });
       }
     } catch (error) {
       console.error("Call start error:", error);
-      console.error("Error details:", {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-      });
-
       setCallStatus(CallStatus.INACTIVE);
       alert(`Failed to start call: ${error.message}`);
     }
